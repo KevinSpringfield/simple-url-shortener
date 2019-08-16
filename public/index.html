@@ -1,0 +1,75 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <title>Kevin URL Shortener</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <style>
+      .result {
+        display: none;
+
+      }
+      .result.active {
+        display: block;
+
+      }
+      .error {
+        display: none;
+
+      }
+      .error.active {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="session">
+        <form id="ShortenedForm" method="POST" action="/">
+        <input id="shorten_url" autocomplete="off" name="url" type="text" placeholde="Shorten your link" value="" />
+        <input id="shorten_btn" class="button button-primary button-large shorten-button" type="submit" value="Shorten">
+        </form>
+        <div class="result">
+          <div class="origin-url"></div>
+          <div class="tiny-url"><div>
+        </div>
+        <div class="error"></div>
+      <div>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script> 
+      $( document ).ready(function() {
+        $("#ShortenedForm").submit(function(e) {
+          e.preventDefault();
+          let form = $( this );
+
+          $.ajax({
+            method: "POST",
+            url: "/",
+            data: form.serialize(),
+          })
+          .done(function( data ) {
+            console.log(data);
+            if (data.ret === "ok") {
+              $(".origin-url").text(data.data['url']);
+              $(".tiny-url").text(data.data['tiny_url']);
+              $(".result").addClass("active");
+              $(".error").removeClass("active");
+            }
+            else {
+              $("error").text(data.msg);
+              $(".error").addClass("active");
+              $(".result").removeClass("active");
+            }
+          })
+          .fail(function(err) {
+            $("error").text('發生了錯誤，請再試一次');
+            $(".error").addClass("active");
+            $(".result").removeClass("active");
+          })
+        });
+      });
+    </script>
+  </body>
+</html>
