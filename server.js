@@ -11,7 +11,10 @@ const {promisify} = require('util');
 
 const app = express();
 const server = http.createServer(app);
-const redisClient = redis.createClient();
+const redisClient = redis.createClient({
+  host: process.env.REDIS_HOST || '127.0.0.1',
+  port: process.env.REDIS_PORT || 6379
+});
 
 const PORT = process.env.HTTP_PORT || 80;
 const DOMAIN_NAME = process.env.DOMAIN_NAME || '127.0.0.1';
