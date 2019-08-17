@@ -30,7 +30,7 @@ Here is the sample of the `.env` file:
 ```
 # .env
 HTTP_PORT=9696                  # HTTP server's listening port
-DOMAIN_NAME='http://helloworld' # Your domain name for generate tiny url
+DOMAIN_NAME='http://helloworld' # Your domain name for generating tiny url
 REDIS_HOST=127.0.0.1            # Redis server's host
 REDIS_PORT=6379                 # Redis server's port 
 ```
@@ -73,7 +73,7 @@ So the simplest concept and flow is:
 
 - Datebase traffic issue
 
-### What I designed
+### About this app
 
 After thinking and considerng some cases above, I decided to build a http server with Node.js and use Redis to store the data, the reason I choose Redis is that Redis uses key-value pair to store data and in-memory feature can speed up the key validation. But the drawback is that system memory has a maximum. 
 
