@@ -4,17 +4,80 @@
     <title>Kevin URL Shortener</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <style>
+      .caption {
+        font-size: 36px;
+        font-weight: bold;
+        margin-top: 80px;
+      }
+      .session {
+        margin-top: 20px;
+      }
+      #shortened-form {
+        display: inline-flex;
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: wrap;
+      }
+      #shorten-url {
+        width: 72%;
+        border: 1px solid #d3d4d7;
+        border-radius: 8px 8px 8px 8px;
+        padding: 0 20px;
+        display: flex;
+        align-items: center;
+      }
+      #shorten-btn {
+        min-width: 25%;
+        border-radius: 8px;
+        background-color: #3e9e57;
+        border-color: #3e9e57;
+        color: white;
+      }
+      @media (max-width: 480px) {
+        #shorten-url {
+          width: 100%; 
+          padding: 10px 20px;
+          margin-bottom: 20px;
+        }
+        #shorten-btn {
+          width: 100%; 
+          padding: 10px 20px;
+        }
+      }
+      .copy-btn {
+        background: white;
+        color: #3d3e3e;
+        font-weight: bold;
+      }
       .result {
         display: none;
-
+        margin-top: 20px;
+        justify-content: space-between;
+        width: 100%;
+        flex-wrap: wrap;
+        background: #3d3e3e;
+        border-color: #3d3e3e;
+        border-radius: 8px 8px 8px 8px;
+        padding: 20px;
+      }
+      .result .origin-url {
+        color: white;
+        margin-right: 30px;
+        display: flex;
+        align-items: center;
+      }
+      .result .tiny-url {
+        color: #dfff86;
+        display: flex;
+        align-items: center;
       }
       .result.active {
-        display: block;
-
+        display: inline-flex;
       }
       .error {
         display: none;
-
+        padding: 0 20px;
+        color: #ff4e4e;
       }
       .error.active {
         display: block;
@@ -23,24 +86,34 @@
   </head>
   <body>
     <div class="container">
+      <div class="caption">Simple URL Shortener</div>
       <div class="session">
-        <form id="ShortenedForm" method="POST" action="/">
-        <input id="shorten_url" autocomplete="off" name="url" type="text" placeholde="Shorten your link" value="" />
-        <input id="shorten_btn" class="button button-primary button-large shorten-button" type="submit" value="Shorten">
+        <form id="shortened-form" method="POST" action="/">
+          <input id="shorten-url" autocomplete="off" name="url" type="text" placeholder="Shorten your link" value="" />
+          <button id="shorten-btn" class="btn" type="submit" value="Shorten">Shorten</button>
         </form>
+        <div class="error"></div>
         <div class="result">
           <div class="origin-url"></div>
-          <div class="tiny-url"><div>
+          <a class="tiny-url" href="#"></a>
+          <button class="btn copy-btn" onclick="copy()">Copy</button>
         </div>
-        <div class="error"></div>
       <div>
     </div>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
     <script> 
+	  function copy() {
+        var $temp = $("<input>");
+        $("body").append($temp);
+        $temp.val($(".tiny-url").attr("href")).select();
+        document.execCommand("copy");
+        $temp.remove();
+	  }
+
       $( document ).ready(function() {
-        $("#ShortenedForm").submit(function(e) {
+        $("#shortened-form").submit(function(e) {
           e.preventDefault();
           let form = $( this );
 
@@ -48,26 +121,26 @@
             method: "POST",
             url: "/",
             data: form.serialize(),
-          })
-          .done(function( data ) {
-            console.log(data);
-            if (data.ret === "ok") {
-              $(".origin-url").text(data.data['url']);
-              $(".tiny-url").text(data.data['tiny_url']);
-              $(".result").addClass("active");
-              $(".error").removeClass("active");
-            }
-            else {
-              $("error").text(data.msg);
+            success: function(data) {
+              console.log(data);
+              if (data.ret === "ok") {
+                $(".origin-url").text(data.data['url']);
+                $(".tiny-url").text(data.data['tiny_url']);
+                $(".tiny-url").attr('href', data.data['tiny_url']);
+                $(".result").addClass("active");
+                $(".error").removeClass("active");
+              }
+              else {
+                $("error").text(data.msg);
+                $(".error").addClass("active");
+              }
+            },
+            error: function(err) {
+              console.log(err);
+              $(".error").text('Some error occurs, please try again!');
               $(".error").addClass("active");
-              $(".result").removeClass("active");
-            }
-          })
-          .fail(function(err) {
-            $("error").text('發生了錯誤，請再試一次');
-            $(".error").addClass("active");
-            $(".result").removeClass("active");
-          })
+            },
+          });
         });
       });
     </script>

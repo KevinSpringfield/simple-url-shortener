@@ -49,13 +49,17 @@ app.route('/')
   inputUrl = req.body.url;
 
   if (url && validator.isURL(inputUrl)) {
-    let hash = getHashString(inputUrl);
-
-    savePair(hash, inputUrl)
-    .then(() => {
-      out['data']={'url': inputUrl, 'tiny_url': url.resolve(DOMAIN_NAME, hash)};
-      res.json(out);
-    })
+    handleSavePair(inputUrl)
+      .then((hash) => {
+        out['data']={'url': inputUrl, 'tiny_url': url.resolve(DOMAIN_NAME, hash)};
+        res.json(out);
+      })
+      .catch((times) => {
+        out['ret'] = 'error';
+        out['status_code'] = '500';
+        out['msg'] = 'Exceed Maximum Retry';
+        res.json(out);
+      });
   }
   else {
     out['ret'] = 'error';
@@ -82,21 +86,45 @@ server.listen(PORT, function() {
 });
 
 function getHashString(s) {
-  let hash = crypto.createHash('sha256').update(s);
+  let string62 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  let hash = crypto.createHash('sha256').update(s + string62[Math.floor(Math.random() * string62.length)]);
   let code = hash.digest('base64').substr(0, 7).replace('/', '').replace('+', '');
 
   return code
 }
 
-function savePair(hash, inputUrl) {
+function handleSavePair(inputUrl) {
+  counter = 0;
   return new Promise(function(resolve, reject) {
-    console.log("save: ", hash, inputUrl);
+    recurSavePair(inputUrl, resolve, reject);
+  });
+}
+
+function recurSavePair(input, finish, fail) {
+ // If depth of recurrence exceed 5, then return error
+ if (counter >= 5) {
+   return fail(counter);
+ }
+
+ let hash = getHashString(input)
+ savePair(hash, inputUrl)
+   .then(() => {
+     finish(hash);
+   })
+   .catch(() => {
+     recurSavePair(inputUrl, finish, fail);
+   });     
+}
+
+function savePair(hash, inputUrl) {
+  console.log("[DEBUG] Try save: ", hash, inputUrl);
+  return new Promise(function(resolve, reject) {
     redisClient.get(`${ keyPrefix }:${ hash }`, function(err, data) {
       if (data) {
-        console.log('[INFO] Key collides! override the former');
-        redisClient.set(`${ keyPrefix }:${ hash }`, inputUrl);
+        console.log('[DEBUG] Key collides!');
+        counter += 1;
 
-        return resolve();
+        return reject();
       }
       else {
         redisClient.set(`${ keyPrefix }:${ hash }`, inputUrl);
@@ -106,4 +134,3 @@ function savePair(hash, inputUrl) {
     });
   });
 }
-
